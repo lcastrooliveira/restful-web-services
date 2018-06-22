@@ -12,6 +12,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class UserResource {
@@ -19,12 +20,15 @@ public class UserResource {
     @Autowired
     private UserDaoService service;
 
-    @GetMapping("/users")
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping("/jpa/users")
     public List<User> retrieveAllUsers() {
-        return service.findAll();
+        return userRepository.findAll();
     }
 
-    @GetMapping("/users/{userId}/posts")
+    @GetMapping("/jpa/users/{userId}/posts")
     public List<Post> retrieveAllUserPosts(@PathVariable int userId) {
         return service.findPostsByUserId(userId);
     }
@@ -34,26 +38,27 @@ public class UserResource {
         return service.findSinglePost(userId, id);
     }
 
-    @GetMapping("/users/{id}")
-    public Resource<User> retrieveUser(@PathVariable int id) {
-        User user = service.findOne(id);
-
+    @GetMapping("/jpa/users/{id}")
+    public Resource<User> retrieveUser(@PathVariable Integer id) {
+        Optional<User> user = userRepository.findById(id);
+        if(!user.isPresent())
+            throw new UserNotFoundException(String.format("id - %s", id));
         // HATEOAS
         // all-users, SERVER_PATH+"/users"
         //retrieveAllUsers
-        Resource<User> resource = new Resource<>(user);
+        Resource<User> resource = new Resource<>(user.get());
         ControllerLinkBuilder linkTo = linkTo(methodOn(this.getClass()).retrieveAllUsers());
         resource.add(linkTo.withRel("all-users"));
         return resource;
     }
 
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/jpa/users/{id}")
     public ResponseEntity deleteUser(@PathVariable int id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/users")
+    @PostMapping("/jpa/users")
     public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
         User savedUser = service.save(user);
         URI location = ServletUriComponentsBuilder
@@ -63,7 +68,7 @@ public class UserResource {
         return ResponseEntity.created(location).build();
     }
 
-    @PostMapping("/users/{userId}/posts")
+    @PostMapping("/jpa/users/{userId}/posts")
     public ResponseEntity<Object> createUserPost(@PathVariable int userId, @RequestBody Post post) {
         User savedUser = service.findOne(userId);
         post = service.savePost(savedUser, post);
