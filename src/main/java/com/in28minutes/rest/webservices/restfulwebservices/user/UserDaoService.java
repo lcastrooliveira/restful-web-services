@@ -16,7 +16,7 @@ public class UserDaoService {
         users.add(new User(1, "Adam", new Date()));
         users.add(new User(2, "Eve", new Date()));
         users.add(new User(3, "Jack", new Date()));
-        users.get(0).setPosts(Arrays.asList(new Post(1, "This is my first post", users.get(0)),
+        users.get(0).setPosts(Arrays.asList(new Post(1, "This is my first post ever", users.get(0)),
                                             new Post(2, "This is my second post", users.get(0))));
         users.get(2).setPosts(Arrays.asList(new Post(3, "I sell jackets", users.get(2))));
     }
