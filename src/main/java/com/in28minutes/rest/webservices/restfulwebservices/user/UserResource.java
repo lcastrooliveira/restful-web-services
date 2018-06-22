@@ -54,13 +54,13 @@ public class UserResource {
 
     @DeleteMapping("/jpa/users/{id}")
     public ResponseEntity deleteUser(@PathVariable int id) {
-        service.deleteById(id);
+        userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/jpa/users")
     public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
-        User savedUser = service.save(user);
+        User savedUser = userRepository.save(user);
         URI location = ServletUriComponentsBuilder
                         .fromCurrentRequest()
                         .path("/{id}")
