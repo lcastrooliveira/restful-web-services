@@ -1,6 +1,7 @@
 package com.in28minutes.rest.webservices.restfulwebservices.user;
 
 import com.in28minutes.rest.webservices.restfulwebservices.post.Post;
+import com.in28minutes.rest.webservices.restfulwebservices.post.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.spel.ast.OpOr;
 import org.springframework.hateoas.Resource;
@@ -23,6 +24,9 @@ public class UserResource {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PostRepository postRepository;
 
     @GetMapping("/jpa/users")
     public List<User> retrieveAllUsers() {
@@ -73,8 +77,12 @@ public class UserResource {
 
     @PostMapping("/jpa/users/{userId}/posts")
     public ResponseEntity<Object> createUserPost(@PathVariable int userId, @RequestBody Post post) {
-        User savedUser = service.findOne(userId);
-        post = service.savePost(savedUser, post);
+        Optional<User> userOptional = userRepository.findById(userId);
+        if(!userOptional.isPresent())
+            throw new UserNotFoundException(String.format("id - %s", userId));
+        User user = userOptional.get();
+        post.setAuthor(user);
+        post = postRepository.save(post);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
