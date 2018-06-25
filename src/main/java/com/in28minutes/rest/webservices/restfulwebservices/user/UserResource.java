@@ -2,6 +2,7 @@ package com.in28minutes.rest.webservices.restfulwebservices.user;
 
 import com.in28minutes.rest.webservices.restfulwebservices.post.Post;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.spel.ast.OpOr;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,9 @@ public class UserResource {
 
     @GetMapping("/jpa/users/{userId}/posts")
     public List<Post> retrieveAllUserPosts(@PathVariable int userId) {
-        return service.findPostsByUserId(userId);
+        Optional<User> userOptional = userRepository.findById(userId);
+        if(!userOptional.isPresent()) throw new UserNotFoundException("id-"+userId);
+        return userOptional.get().getPosts();
     }
 
     @GetMapping("/users/{userId}/posts/{id}")
